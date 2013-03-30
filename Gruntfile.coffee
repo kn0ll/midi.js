@@ -2,8 +2,9 @@ nconf = require('nconf')
 _ = require('underscore')
 
 defaults =
-  src: 'src'      # --src=src
-  dist: 'dist' # --dist=dist/dev
+  src: 'src'         # --src=src
+  staging: 'staging' # --staging=staging
+  dist: 'dist'       # --dist=dist
 
 nconf
   .argv()
@@ -12,6 +13,7 @@ nconf
 
 module.exports = (grunt) ->
   src = nconf.get('src')
+  staging = nconf.get('staging')
   dist = nconf.get('dist')
 
   loadTasks = (tasks) ->
@@ -26,10 +28,10 @@ module.exports = (grunt) ->
 
   rjs_options = (options) ->
     defaults = 
-      baseUrl: "#{dist}/js"
+      baseUrl: "#{staging}"
       almond: true
       include: ["main"]
-      out: "#{dist}/midi.js",
+      out: "#{dist}/midi.js"
       optimize: "none"
       # using this wrapper gives us
       # a: the ability to export objects safely in Node or the browser
@@ -43,14 +45,15 @@ module.exports = (grunt) ->
   grunt.initConfig
 
     clean:
+      staging: ["#{staging}/*"]
       dist: ["#{dist}/*"]
 
     coffee: 
       compile: 
         expand: true
-        cwd: "#{src}/coffee"
+        cwd: "#{src}"
         src: ["**/*.coffee"]
-        dest: "#{dist}/js"
+        dest: "#{staging}"
         ext: '.js'
         options:
           bare: true
@@ -66,7 +69,7 @@ module.exports = (grunt) ->
 
     regarde: 
       coffee: 
-        files: ["#{src}/coffee/**/*.coffee"]
+        files: ["#{src}/**/*.coffee"]
         tasks: ["coffee:compile:change", "requirejs"]
 
   createChangeTask = (task, target) ->
