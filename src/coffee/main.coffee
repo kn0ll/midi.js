@@ -20,5 +20,6 @@ define [
       @header = header
       @tracks = tracks
 
-    encode: ->
-      MIDI.encode(@)
+    write: ->
+      writer = new Writer(@)
+      writer.write()

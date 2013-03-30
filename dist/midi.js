@@ -970,7 +970,13 @@ define('lib/writer',[],function() {
   var MIDIWriter;
 
   return MIDIWriter = (function() {
-    function MIDIWriter() {}
+    function MIDIWriter(midi) {
+      this.midi = midi;
+    }
+
+    MIDIWriter.prototype.write = function() {
+      return JSON.stringify(this.midi);
+    };
 
     return MIDIWriter;
 
@@ -1000,8 +1006,11 @@ define('main',['./lib/parser', './lib/writer', './lib/events'], function(Parser,
       this.tracks = tracks;
     }
 
-    _Class.prototype.encode = function() {
-      return MIDI.encode(this);
+    _Class.prototype.write = function() {
+      var writer;
+
+      writer = new Writer(this);
+      return writer.write();
     };
 
     return _Class;

@@ -90,9 +90,6 @@ module.exports = (grunt) ->
     'coffee:compile',
     'requirejs']
 
-  grunt.registerTask 'develop', [
-    'regarde']
-
   grunt.registerTask 'default', [
     'build',
-    'develop']
+    'regarde']
