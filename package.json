@@ -1,0 +1,28 @@
+{
+  "name": "midi.js",
+  "author": "catshirt <caden@catshirt.net>",
+  "description": "MIDI file parser and writer",
+  "keywords": [
+    "midi",
+    "parser",
+    "writer"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/catshirt/midi.js"
+  },
+  "devDependencies": {
+    "grunt": "0.4.0rc7",
+    "grunt-contrib-clean": "0.4.0rc6",
+    "grunt-contrib-coffee": "~0.6.4",
+    "grunt-regarde": "~0.1.1",
+    "nconf": "~0.6.7",
+    "underscore": "~1.4.4",
+    "grunt-contrib-requirejs": "~0.4.0",
+    "grunt-requirejs": "~0.3.5"
+  },
+  "engines": {
+    "node": ">=0.8.12"
+  },
+  "version": "0.0.1"
+}
