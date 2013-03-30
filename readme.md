@@ -41,8 +41,7 @@ track1 = [
   new MIDI.Events.NoteOff(65, 64, 24),
   new MIDI.Events.NoteOn(70, 100, 168),
   new MIDI.Events.NoteOff(70, 64, 24),
-  new MIDI.Events.EndOfTrack()
-]
+  new MIDI.Events.EndOfTrack()]
 
 midi = new MIDI(header, [track1])
 console.log(midi.write())
