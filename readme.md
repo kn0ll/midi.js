@@ -2,11 +2,11 @@
 
 a library for writing MIDI files, reading MIDI files, and representing MIDI files as an intermediary JSON structure. nothing more, nothing less.
 
-## including midi.js
+## including
 
-simply add a `script` tag to your page linking to the [midi.js](https://github.com/catshirt/midi.js/blob/master/dist/midi.js) built script. this will expose a global `MIDI` object.``
+simply add a `script` tag to your page linking to the [midi.js](https://github.com/catshirt/midi.js/blob/master/dist/midi.js) built script. this will expose a global `MIDI` object.
 
-## using midi.js
+## using
 
 ### to read files
 
@@ -34,7 +34,7 @@ header =
   trackCount: 1
   ticksPerBeat: 96
 
-tracks = [[
+track1 = [
   new MIDI.Events.TrackName(''),
   new MIDI.Events.TimeSignature(4, 4, 36, 8),
   new MIDI.Events.NoteOn(65, 100),
@@ -42,9 +42,9 @@ tracks = [[
   new MIDI.Events.NoteOn(70, 100, 168),
   new MIDI.Events.NoteOff(70, 64, 24),
   new MIDI.Events.EndOfTrack()
-]]
+]
 
-midi = new MIDI(header, tracks)
+midi = new MIDI(header, [track1])
 console.log(midi.write())
 ```
 
