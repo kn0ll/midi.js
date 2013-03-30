@@ -13,9 +13,8 @@ define [
 
     constructor: (header, tracks) ->
       if typeof header is 'string'
-        decoded = new Parser(header)
-        header = decoded.header
-        tracks = decoded.tracks
+        parser = new Parser(header)
+        { header, tracks } = parser.parse()
 
       @header = header
       @tracks = tracks

@@ -407,16 +407,19 @@ var requirejs, require, define;
 
 define("almond", function(){});
 
-define('lib/stream',[],function() {
-  var MIDIStream;
+var __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  return MIDIStream = (function() {
-    function MIDIStream(str) {
+define('lib/stream',[],function() {
+  var MIDIReadStream, ReadStream, _ref;
+
+  ReadStream = (function() {
+    function ReadStream(str) {
       this.str = str;
       this.position = 0;
     }
 
-    MIDIStream.prototype.read = function(length) {
+    ReadStream.prototype.read = function(length) {
       var result;
 
       result = this.str.substr(this.position, length);
@@ -424,7 +427,7 @@ define('lib/stream',[],function() {
       return result;
     };
 
-    MIDIStream.prototype.readInt32 = function() {
+    ReadStream.prototype.readInt32 = function() {
       var position, result, str;
 
       str = this.str;
@@ -434,7 +437,7 @@ define('lib/stream',[],function() {
       return result;
     };
 
-    MIDIStream.prototype.readInt16 = function() {
+    ReadStream.prototype.readInt16 = function() {
       var position, result, str;
 
       str = this.str;
@@ -444,7 +447,7 @@ define('lib/stream',[],function() {
       return result;
     };
 
-    MIDIStream.prototype.readInt8 = function(signed) {
+    ReadStream.prototype.readInt8 = function(signed) {
       var result;
 
       result = this.str.charCodeAt(this.position);
@@ -455,11 +458,22 @@ define('lib/stream',[],function() {
       return result;
     };
 
-    MIDIStream.prototype.eof = function() {
+    ReadStream.prototype.eof = function() {
       return this.position >= this.str.length;
     };
 
-    MIDIStream.prototype.readVarInt = function() {
+    return ReadStream;
+
+  })();
+  return MIDIReadStream = (function(_super) {
+    __extends(MIDIReadStream, _super);
+
+    function MIDIReadStream() {
+      _ref = MIDIReadStream.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    MIDIReadStream.prototype.readVarInt = function() {
       var b, result;
 
       result = 0;
@@ -474,7 +488,7 @@ define('lib/stream',[],function() {
       }
     };
 
-    MIDIStream.prototype.readChunk = function() {
+    MIDIReadStream.prototype.readChunk = function() {
       var data, id, length;
 
       id = this.read(4);
@@ -487,9 +501,9 @@ define('lib/stream',[],function() {
       };
     };
 
-    return MIDIStream;
+    return MIDIReadStream;
 
-  })();
+  })(ReadStream);
 });
 
 define('lib/events',[],function() {
@@ -643,323 +657,313 @@ define('lib/events',[],function() {
 var __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-define('lib/parser',['./stream', './events'], function(Stream, Events) {
-  var ChannelEventParser, EventParser, MIDIHeader, MIDIParser, MIDITracks, MetaEventParser, SysEventParser, _ref, _ref1, _ref2;
+define('lib/parser',['./stream', './events'], function(MIDIReadStream, Events) {
+  var MIDIChannelEventParser, MIDIEventParser, MIDIHeaderParser, MIDIMetaEventParser, MIDIParser, MIDISysEventParser, MIDITrackParser, _ref, _ref1, _ref2;
 
-  EventParser = (function() {
-    function EventParser() {}
+  MIDIEventParser = (function() {
+    function MIDIEventParser(stream, time, eventTypeByte) {
+      this.stream = stream;
+      this.time = time;
+      this.eventTypeByte = eventTypeByte;
+    }
 
-    EventParser.checkLength = function(name, length, check) {
+    MIDIEventParser.checkLength = function(name, length, check) {
+      var err;
+
+      err = "Expected length for " + name + " event is " + check + ", got " + length;
       if (length !== check) {
-        throw "Expected length for " + name + " event is " + check + ", got " + length;
-      }
-      if (length === check) {
-        return true;
+        throw err;
       }
     };
 
-    return EventParser;
+    return MIDIEventParser;
 
   })();
-  MetaEventParser = (function(_super) {
-    __extends(MetaEventParser, _super);
+  MIDIMetaEventParser = (function(_super) {
+    __extends(MIDIMetaEventParser, _super);
 
-    function MetaEventParser() {
-      _ref = MetaEventParser.__super__.constructor.apply(this, arguments);
+    function MIDIMetaEventParser() {
+      _ref = MIDIMetaEventParser.__super__.constructor.apply(this, arguments);
       return _ref;
     }
 
-    MetaEventParser.events = {
+    MIDIMetaEventParser.events = {
       0x00: function(length, stream, time) {
-        if (!MetaEventParser.checkLength('SequenceNumber', length, 2)) {
-          return;
-        }
-        return new MIDI.Events.SequenceNumber(stream.readInt16(), time);
+        MIDIEventParser.checkLength('SequenceNumber', length, 2);
+        return new Events.SequenceNumber(stream.readInt16(), time);
       },
       0x01: function(length, stream, time) {
-        return new MIDI.Events.Text(stream.read(length), time);
+        return new Events.Text(stream.read(length), time);
       },
       0x02: function(length, stream, time) {
-        return new MIDI.Events.CopyrightNotice(stream.read(length), time);
+        return new Events.CopyrightNotice(stream.read(length), time);
       },
       0x03: function(length, stream, time) {
-        return new MIDI.Events.TrackName(stream.read(length), time);
+        return new Events.TrackName(stream.read(length), time);
       },
       0x04: function(length, stream, time) {
-        return new MIDI.Events.InstrumentName(stream.read(length), time);
+        return new Events.InstrumentName(stream.read(length), time);
       },
       0x05: function(length, stream, time) {
-        return new MIDI.Events.Lyrics(stream.read(length), time);
+        return new Events.Lyrics(stream.read(length), time);
       },
       0x06: function(length, stream, time) {
-        return new MIDI.Events.Marker(stream.read(length), time);
+        return new Events.Marker(stream.read(length), time);
       },
       0x07: function(length, stream, time) {
-        return new MIDI.Events.CuePoint(stream.read(length), time);
+        return new Events.CuePoint(stream.read(length), time);
       },
       0x20: function(length, stream, time) {
-        if (!MetaEventParser.checkLength('ChannelPrefix', length, 1)) {
-          return;
-        }
-        return new MIDI.Events.ChannelPrefix(stream.readInt8(), time);
+        MIDIEventParser.checkLength('ChannelPrefix', length, 1);
+        return new Events.ChannelPrefix(stream.readInt8(), time);
       },
       0x2f: function(length, stream, time) {
-        if (!MetaEventParser.checkLength('EndOfTrack', length, 0)) {
-          return;
-        }
-        return new MIDI.Events.EndOfTrack(time);
+        MIDIEventParser.checkLength('EndOfTrack', length, 0);
+        return new Events.EndOfTrack(time);
       },
       0x51: function(length, stream, time) {
-        if (!MetaEventParser.checkLength('SetTempo', length, 3)) {
-          return;
-        }
-        return new MIDI.Events.SetTempo((stream.readInt8() << 16) + (stream.readInt8() << 8) + stream.readInt8(), time);
+        MIDIEventParser.checkLength('SetTempo', length, 3);
+        return new Events.SetTempo((stream.readInt8() << 16) + (stream.readInt8() << 8) + stream.readInt8(), time);
       },
       0x54: function(length, stream, time) {
         var frame_rate, hour_byte;
 
-        if (!MetaEventParser.checkLength('SMPTEOffset', length, 5)) {
-          return;
-        }
+        MIDIEventParser.checkLength('SMPTEOffset', length, 5);
         hour_byte = stream.readInt8();
         frame_rate = {
           0x00: 24,
           0x20: 25,
           0x40: 29,
           0x60: 30
-        };
-        frame_rate = frame_rate[hour_byte & 0x60];
+        }[hour_byte & 0x60];
         return new SMPTEOffset(frame_rate, hour_byte & 0x1f, stream.readInt8(), stream.readInt8(), stream.readInt8(), stream.readInt8(), time);
       },
       0x58: function(length, stream, time) {
-        if (!MetaEventParser.checkLength('TimeSignature', length, 4)) {
-          return;
-        }
-        return new MIDI.Events.TimeSignature(stream.readInt8(), Math.pow(2, stream.readInt8()), stream.readInt8(), stream.readInt8(), time);
+        MIDIEventParser.checkLength('TimeSignature', length, 4);
+        return new Events.TimeSignature(stream.readInt8(), Math.pow(2, stream.readInt8()), stream.readInt8(), stream.readInt8(), time);
       },
       0x59: function(length, stream, time) {
-        if (!MetaEventParser.checkLength('KeySignature', length, 2)) {
-          return;
-        }
-        return new MIDI.Events.KeySignature(stream.readInt8(true), stream.readInt8(), time);
+        MIDIEventParser.checkLength('KeySignature', length, 2);
+        return new Events.KeySignature(stream.readInt8(true), stream.readInt8(), time);
       },
       0x7f: function(length, stream, time) {
-        return new MIDI.Events.SequencerSpecific(stream.read(length), time);
+        return new Events.SequencerSpecific(stream.read(length), time);
       }
     };
 
-    MetaEventParser.prototype.read = function(stream, time, eventTypeByte) {
+    MIDIMetaEventParser.prototype.parse = function() {
       var create_event, length, nameByte;
 
-      nameByte = stream.readInt8();
-      length = stream.readVarInt();
-      create_event = MetaEventParser.events[nameByte];
+      nameByte = this.stream.readInt8();
+      length = this.stream.readVarInt();
+      create_event = MIDIMetaEventParser.events[nameByte];
       if (create_event) {
-        return create_event(length, stream, time);
+        return create_event(length, this.stream, this.time);
       } else {
         return {
           type: "unknown",
-          time: time,
-          data: stream.read(length)
+          time: this.time,
+          data: this.stream.read(length)
         };
       }
     };
 
-    return MetaEventParser;
+    return MIDIMetaEventParser;
 
-  })(EventParser);
-  ChannelEventParser = (function(_super) {
-    __extends(ChannelEventParser, _super);
+  })(MIDIEventParser);
+  MIDIChannelEventParser = (function(_super) {
+    __extends(MIDIChannelEventParser, _super);
 
-    function ChannelEventParser() {
-      _ref1 = ChannelEventParser.__super__.constructor.apply(this, arguments);
+    function MIDIChannelEventParser() {
+      _ref1 = MIDIChannelEventParser.__super__.constructor.apply(this, arguments);
       return _ref1;
     }
 
-    ChannelEventParser.events = {
+    MIDIChannelEventParser.events = {
       0x08: function(param, stream, time) {
-        return new MIDI.Events.NoteOff(param, stream.readInt8(), time);
+        return new Events.NoteOff(param, stream.readInt8(), time);
       },
       0x09: function(param, stream, time) {
-        var event_name, velocity;
+        var event, velocity;
 
         velocity = stream.readInt8();
-        event_name = (velocity ? "NoteOn" : "NoteOff");
-        return new MIDI.Events[event_name](param, velocity, time);
+        event = (velocity ? "NoteOn" : "NoteOff");
+        return new Events[event](param, velocity, time);
       },
       0x0a: function(param, stream, time) {
-        return new MIDI.Events.NoteAftertouch(param, stream.readInt8(), time);
+        return new Events.NoteAftertouch(param, stream.readInt8(), time);
       },
       0x0b: function(param, stream, time) {
-        return new MIDI.Events.Controller(param, stream.readInt8(), time);
+        return new Events.Controller(param, stream.readInt8(), time);
       },
       0x0c: function(param, stream, time) {
-        return new MIDI.Events.ProgramChange(param, time);
+        return new Events.ProgramChange(param, time);
       },
       0x0d: function(param, stream, time) {
-        return new MIDI.Events.ChannelAftertouch(param, time);
+        return new Events.ChannelAftertouch(param, time);
       },
       0x0e: function(param, stream, time) {
-        return new MIDI.Events.PitchBend(param + (stream.readInt8() << 7), time);
+        return new Events.PitchBend(param + (stream.readInt8() << 7), time);
       }
     };
 
-    ChannelEventParser.prototype.read = function(stream, time, eventTypeByte) {
-      var channel, create_event, eventType, param;
+    MIDIChannelEventParser.prototype.parse = function() {
+      var channel, create_event, eventType, eventTypeByte, param;
 
+      eventTypeByte = this.eventTypeByte;
       if ((eventTypeByte & 0x80) === 0) {
         param = eventTypeByte;
         eventTypeByte = this._lastEventTypeByte;
       } else {
-        param = stream.readInt8();
+        param = this.stream.readInt8();
         this._lastEventTypeByte = eventTypeByte;
       }
       eventType = eventTypeByte >> 4;
       channel = eventTypeByte & 0x0f;
-      create_event = ChannelEventParser.events[eventType];
+      create_event = MIDIChannelEventParser.events[eventType];
       if (create_event) {
-        return create_event(param, stream, time);
+        return create_event(param, this.stream, this.time);
       } else {
         return {
           type: "unknown",
-          time: time,
+          time: this.time,
           channel: channel
         };
       }
     };
 
-    return ChannelEventParser;
+    return MIDIChannelEventParser;
 
-  })(EventParser);
-  SysEventParser = (function(_super) {
-    __extends(SysEventParser, _super);
+  })(MIDIEventParser);
+  MIDISysEventParser = (function(_super) {
+    __extends(MIDISysEventParser, _super);
 
-    function SysEventParser() {
-      _ref2 = SysEventParser.__super__.constructor.apply(this, arguments);
+    function MIDISysEventParser() {
+      _ref2 = MIDISysEventParser.__super__.constructor.apply(this, arguments);
       return _ref2;
     }
 
-    SysEventParser.events = {
+    MIDISysEventParser.events = {
       0xf0: function(stream, time) {
         var length;
 
         length = stream.readVarInt();
-        return new MIDI.Events.SysEx(stream.read(length), time);
+        return new Events.SysEx(stream.read(length), time);
       },
       0xf7: function(stream, time) {
         var length;
 
         length = stream.readVarInt();
-        return new MIDI.Events.DividedSysEx(stream.read(length), time);
+        return new Events.DividedSysEx(stream.read(length), time);
       }
     };
 
-    SysEventParser.prototype.read = function(stream, time, eventTypeByte) {
+    MIDISysEventParser.prototype.parse = function() {
       var create_event;
 
-      create_event = SysEventParser.events[eventTypeByte];
+      create_event = MIDISysEventParser.events[this.eventTypeByte];
       if (create_event) {
-        return create_event(stream, time);
+        return create_event(this.stream, this.time);
       } else {
         return {
           type: "unknown",
-          time: time
+          time: this.time
         };
       }
     };
 
-    return SysEventParser;
+    return MIDISysEventParser;
 
-  })(EventParser);
-  MIDIHeader = (function() {
-    function MIDIHeader(midi_stream) {
-      this.midi_stream = midi_stream;
+  })(MIDIEventParser);
+  MIDITrackParser = (function() {
+    function MIDITrackParser(track_chunk) {
+      this.chunk = track_chunk;
     }
 
-    MIDIHeader.prototype.read = function() {
-      var header, header_chunk, header_stream;
+    MIDITrackParser.prototype.parse = function() {
+      var Parser, event_type_byte, events, parser, stream, time, track_id, unexpected;
 
-      header_chunk = this.midi_stream.readChunk();
-      if (header_chunk.id !== "MThd" || header_chunk.length !== 6) {
+      track_id = this.chunk.id;
+      unexpected = track_id !== "MTrk";
+      if (unexpected) {
+        throw "Unexpected chunk. Expected MTrk, got " + track_id + ".";
+      }
+      events = [];
+      stream = new MIDIReadStream(this.chunk.data);
+      while (!stream.eof()) {
+        time = stream.readVarInt();
+        event_type_byte = stream.readInt8();
+        Parser = this.getEventParserByTypeByte(event_type_byte);
+        parser = new Parser(stream, time, event_type_byte);
+        events.push(parser.parse());
+      }
+      return events;
+    };
+
+    MIDITrackParser.prototype.getEventParserByTypeByte = function(event_type_byte) {
+      if ((event_type_byte & 0xf0) !== 0xf0) {
+        return MIDIChannelEventParser;
+      } else if (event_type_byte === 0xff) {
+        return MIDIMetaEventParser;
+      } else {
+        return MIDISysEventParser;
+      }
+    };
+
+    return MIDITrackParser;
+
+  })();
+  MIDIHeaderParser = (function() {
+    function MIDIHeaderParser(header_chunk) {
+      this.chunk = header_chunk;
+    }
+
+    MIDIHeaderParser.prototype.parse = function() {
+      var header, invalid, stream;
+
+      invalid = this.chunk.id !== "MThd" || this.chunk.length !== 6;
+      if (invalid) {
         throw "Bad .mid file - header not found";
       }
-      header_stream = new Stream(header_chunk.data);
+      stream = new MIDIReadStream(this.chunk.data);
       header = {
-        formatType: header_stream.readInt16(),
-        trackCount: header_stream.readInt16(),
-        ticksPerBeat: header_stream.readInt16()
+        formatType: stream.readInt16(),
+        trackCount: stream.readInt16(),
+        ticksPerBeat: stream.readInt16()
       };
-      if (header.ticksPerBeat & 0x8000) {
+      invalid = header.ticksPerBeat & 0x8000;
+      if (invalid) {
         throw "Expressing time division in SMTPE frames is not supported yet";
       }
       return header;
     };
 
-    return MIDIHeader;
-
-  })();
-  MIDITracks = (function() {
-    function MIDITracks(midi_stream, header) {
-      this.midi_stream = midi_stream;
-      this.header = header;
-    }
-
-    MIDITracks.prototype.read = function() {
-      var i, track, track_chunk, track_id, track_stream, tracks, unexpected, _i, _ref3;
-
-      tracks = [];
-      for (i = _i = 0, _ref3 = this.header.trackCount - 1; 0 <= _ref3 ? _i <= _ref3 : _i >= _ref3; i = 0 <= _ref3 ? ++_i : --_i) {
-        track = tracks[i] = [];
-        track_chunk = this.midi_stream.readChunk();
-        track_id = track_chunk.id;
-        unexpected = track_id !== "MTrk";
-        if (unexpected) {
-          throw "Unexpected chunk. Expected MTrk, got " + track_id + ".";
-        }
-        track_stream = new Stream(track_chunk.data);
-        while (!track_stream.eof()) {
-          track.push(this.readNext(track_stream));
-        }
-      }
-      return tracks;
-    };
-
-    MIDITracks.prototype.readNext = function(track_stream) {
-      var e, eventTypeByte, parser, time;
-
-      e = new Event(track_stream);
-      time = track_stream.readVarInt();
-      eventTypeByte = track_stream.readInt8();
-      EventParser = this.getEventParserByType(eventTypeByte);
-      parser = new EventParser();
-      return parser.read(track_stream, time, eventTypeByte);
-    };
-
-    MIDITracks.prototype.getEventParserByType = function(eventTypeByte) {
-      if ((eventTypeByte & 0xf0) !== 0xf0) {
-        return ChannelEventParser;
-      } else if (eventTypeByte === 0xff) {
-        return MetaEventParser;
-      } else {
-        return SysEventParser;
-      }
-    };
-
-    return MIDITracks;
+    return MIDIHeaderParser;
 
   })();
   return MIDIParser = (function() {
     function MIDIParser(binaryString) {
-      var header, header_parser, midi_stream, track_parser, tracks;
-
-      midi_stream = new Stream(binaryString);
-      header_parser = new MIDIHeader(midi_stream);
-      header = header_parser.read();
-      track_parser = new MIDITracks(midi_stream, header);
-      tracks = track_parser.read();
-      this.header = header;
-      this.tracks = tracks;
+      this.binaryString = binaryString;
     }
+
+    MIDIParser.prototype.parse = function() {
+      var header, header_chunk, header_parser, midi_stream, track_chunk, track_parser, tracks;
+
+      midi_stream = new MIDIReadStream(this.binaryString);
+      header_chunk = midi_stream.readChunk();
+      header_parser = new MIDIHeaderParser(header_chunk);
+      header = header_parser.parse();
+      tracks = [];
+      while (!midi_stream.eof()) {
+        track_chunk = midi_stream.readChunk();
+        track_parser = new MIDITrackParser(track_chunk);
+        tracks.push(track_parser.parse());
+      }
+      return {
+        header: header,
+        tracks: tracks
+      };
+    };
 
     return MIDIParser;
 
@@ -995,12 +999,11 @@ define('main',['./lib/parser', './lib/writer', './lib/events'], function(Parser,
     _Class.Events = Events;
 
     function _Class(header, tracks) {
-      var decoded;
+      var parser, _ref;
 
       if (typeof header === 'string') {
-        decoded = new Parser(header);
-        header = decoded.header;
-        tracks = decoded.tracks;
+        parser = new Parser(header);
+        _ref = parser.parse(), header = _ref.header, tracks = _ref.tracks;
       }
       this.header = header;
       this.tracks = tracks;

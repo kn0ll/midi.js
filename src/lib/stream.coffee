@@ -1,6 +1,6 @@
 define ->
 
-  class MIDIStream
+  class ReadStream
 
     constructor: (str) ->
       @str = str
@@ -33,6 +33,8 @@ define ->
 
     eof: ->
       @position >= @str.length
+
+  class MIDIReadStream extends ReadStream
 
     # read a MIDI-style variable-length integer
     # (big-endian value in groups of 7 bits,
