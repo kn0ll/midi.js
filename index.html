@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>midi.js by catshirt</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>midi.js</h1>
+        <p>a MIDI file parser, writer, and intermediary MIDI JSON structure</p>
+
+        <p class="view"><a href="https://github.com/catshirt/midi.js">View the Project on GitHub <small>catshirt/midi.js</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/catshirt/midi.js/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/catshirt/midi.js/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/catshirt/midi.js">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>midi.js</h1>
+
+<p>a library for writing MIDI files, reading MIDI files, and representing MIDI files as an intermediary JSON structure. nothing more, nothing less.</p>
+
+<h2>including</h2>
+
+<p>simply add a <code>script</code> tag to your page linking to the <a href="https://github.com/catshirt/midi.js/blob/master/dist/midi.js">midi.js</a> built script. this will expose a global <code>MIDI</code> object.</p>
+
+<h2>using</h2>
+
+<h3>to read files</h3>
+
+<p>midi.js accepts a binary string as it's input. the example below shows how to parse a midi file selected from a <code>file</code> type input.</p>
+
+<pre><code>onFileChange = (fileInput) -&gt;
+  files = fileInput.files
+  reader = new FileReader()
+
+  reader.onload = (load_e) -&gt;
+    midi = new MIDI(load_e.target.result)
+    console.log midi
+
+  reader.readAsBinaryString(files[0])
+</code></pre>
+
+<h3>to write files</h3>
+
+<p>instead of accepting a binary string, the MIDI constructor can also accept predefined <code>header</code> and <code>track</code> objects. additionally, any MIDI file can call <code>write</code> to return the encoded contents of the midi.</p>
+
+<pre><code>header =
+  formatType: 0
+  trackCount: 1
+  ticksPerBeat: 96
+
+track1 = [
+  new MIDI.Events.TrackName(''),
+  new MIDI.Events.TimeSignature(4, 4, 36, 8),
+  new MIDI.Events.NoteOn(65, 100),
+  new MIDI.Events.NoteOff(65, 64, 24),
+  new MIDI.Events.NoteOn(70, 100, 168),
+  new MIDI.Events.NoteOff(70, 64, 24),
+  new MIDI.Events.EndOfTrack()]
+
+midi = new MIDI(header, [track1])
+console.log(midi.write())
+</code></pre>
+
+<h2>compiling, developing</h2>
+
+<p>two primary Gruntfile tasks are exposed for purposes of developement.</p>
+
+<p><code>build</code> - will compile coffeescript files, and build the requirejs distributed packages
+<code>default</code> - will run build, and setup a watcher to rebuild on file changes</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/catshirt">catshirt</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-37581591-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
