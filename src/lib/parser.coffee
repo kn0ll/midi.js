@@ -59,7 +59,7 @@ define [
         MIDIEventParser.checkLength('SMPTEOffset', length, 5)
         hour_byte = stream.readInt8()
         frame_rate = { 0x00: 24, 0x20: 25, 0x40: 29, 0x60: 30 }[hour_byte & 0x60]
-        new SMPTEOffset(frame_rate, hour_byte & 0x1f, stream.readInt8(), stream.readInt8(), stream.readInt8(), stream.readInt8(), time)
+        new Events.SMPTEOffset(frame_rate, hour_byte & 0x1f, stream.readInt8(), stream.readInt8(), stream.readInt8(), stream.readInt8(), time)
 
       0x58: (length, stream, time) ->
         MIDIEventParser.checkLength('TimeSignature', length, 4)
@@ -188,7 +188,7 @@ define [
         trackCount: stream.readInt16()
         ticksPerBeat: stream.readInt16()
       invalid = header.ticksPerBeat & 0x8000
-      throw "Expressing time division in SMTPE frames is not supported yet" if invalid
+      throw "Expressing time division in SMPTE frames is not supported yet" if invalid
       header
 
   class MIDIParser
