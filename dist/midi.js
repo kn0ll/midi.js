@@ -736,7 +736,7 @@ define('lib/parser',['./stream', './events'], function(MIDIReadStream, Events) {
           0x40: 29,
           0x60: 30
         }[hour_byte & 0x60];
-        return new SMPTEOffset(frame_rate, hour_byte & 0x1f, stream.readInt8(), stream.readInt8(), stream.readInt8(), stream.readInt8(), time);
+        return new Events.SMPTEOffset(frame_rate, hour_byte & 0x1f, stream.readInt8(), stream.readInt8(), stream.readInt8(), stream.readInt8(), time);
       },
       0x58: function(length, stream, time) {
         MIDIEventParser.checkLength('TimeSignature', length, 4);
@@ -933,7 +933,7 @@ define('lib/parser',['./stream', './events'], function(MIDIReadStream, Events) {
       };
       invalid = header.ticksPerBeat & 0x8000;
       if (invalid) {
-        throw "Expressing time division in SMTPE frames is not supported yet";
+        throw "Expressing time division in SMPTE frames is not supported yet";
       }
       return header;
     };
@@ -971,15 +971,53 @@ define('lib/parser',['./stream', './events'], function(MIDIReadStream, Events) {
 });
 
 define('lib/writer',[],function() {
-  var MIDIWriter;
+  var MIDIHeaderWriter, MIDITrackWriter, MIDIWriter;
 
+  MIDITrackWriter = (function() {
+    function MIDITrackWriter(track_obj) {
+      this.obj = track_obj;
+    }
+
+    MIDITrackWriter.prototype.write = function() {
+      return 'foo';
+    };
+
+    return MIDITrackWriter;
+
+  })();
+  MIDIHeaderWriter = (function() {
+    function MIDIHeaderWriter(header_obj) {
+      this.obj = header_obj;
+    }
+
+    MIDIHeaderWriter.prototype.write = function() {
+      return 'foo';
+    };
+
+    return MIDIHeaderWriter;
+
+  })();
   return MIDIWriter = (function() {
     function MIDIWriter(midi) {
       this.midi = midi;
     }
 
     MIDIWriter.prototype.write = function() {
-      return JSON.stringify(this.midi);
+      var binaryString, header, header_writer, i, midi, midi_stream, track, track_writer, tracks, _i, _ref;
+
+      binaryString = [];
+      midi = this.midi;
+      header = midi.header;
+      tracks = midi.tracks;
+      midi_stream = new MIDIWriteStream();
+      header_writer = new MIDIHeaderWriter(header);
+      binaryString.push(header_writer.write());
+      for (i = _i = 0, _ref = tracks.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+        track = tracks[i];
+        track_writer = new MIDITrackWriter(track);
+        binaryString.push(track_writer.write());
+      }
+      return binaryString;
     };
 
     return MIDIWriter;
